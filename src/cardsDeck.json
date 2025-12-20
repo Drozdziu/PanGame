@@ -1,0 +1,98 @@
+[
+    {
+        "name": "AceOfHearts",
+        "value": 5
+    },
+    {
+        "name": "AceOfDiamonds",
+        "value": 5
+    },
+    {
+        "name": "AceOfSpades",
+        "value": 5
+    },
+    {
+        "name": "AceOfClubs",
+        "value": 5
+    },
+    {
+        "name": "KingOfHearts",
+        "value": 4
+    },
+    {
+        "name": "KingOfDiamonds",
+        "value": 4
+    },
+    {
+        "name": "KingOfSpades",
+        "value": 4
+    },
+    {
+        "name": "KingOfClubs",
+        "value": 4
+    },
+    {
+        "name": "QueenOfHearts",
+        "value": 3
+    },
+    {
+        "name": "QueenOfDiamonds",
+        "value": 3
+    },
+    {
+        "name": "QueenOfSpades",
+        "value": 3
+    },
+    {
+        "name": "QueenOfClubs",
+        "value": 3
+    },
+    {
+        "name": "JackOfHearts",
+        "value": 2
+    },
+    {
+        "name": "JackOfDiamonds",
+        "value": 2
+    },
+    {
+        "name": "JackOfSpades",
+        "value": 2
+    },
+    {
+        "name": "JackOfClubs",
+        "value": 2
+    },
+    {
+        "name": "TenOfHearts",
+        "value": 1
+    },
+    {
+        "name": "TenOfDiamonds",
+        "value": 1
+    },
+    {
+        "name": "TenOfSpades",
+        "value": 1
+    },
+    {
+        "name": "TenOfClubs",
+        "value": 1
+    },
+    {
+        "name": "NineOfHearts",
+        "value": 0
+    },
+    {
+        "name": "NineOfDiamonds",
+        "value": 0
+    },
+    {
+        "name": "NineOfSpades",
+        "value": 0
+    },
+    {
+        "name": "NineOfClubs",
+        "value": 0
+    }
+]
