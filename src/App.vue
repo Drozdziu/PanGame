@@ -2,55 +2,62 @@
 import { onMounted, ref } from 'vue';
 import cardsDeckJSON from './cardsDeck.json'
 import CardComp from './components/CardComp.vue';
+import AlertComp from './components/AlertComp.vue';
 interface card {
   name: string,
   value: number,
 };
-const cardsDeck : card[] = cardsDeckJSON;
+const cardsDeck = ref<card[]>([...cardsDeckJSON]);
 const playerDeck = ref<card[]>([]);
 const bot1Deck = ref<card[]>([]);
 const bot2Deck = ref<card[]>([]);
 const bot3Deck = ref<card[]>([]);
 const mainDeck = ref<card[]>([]);
-const decks = [playerDeck, bot1Deck, bot2Deck, bot3Deck];
-mainDeck.value.push({ name: 'koszulka', value: -1 });
+const decks = ref([playerDeck, bot1Deck, bot2Deck, bot3Deck]);
+
+const canPlay = ref<boolean>(true);
 
 const wait = (ms: number) => new Promise<void>(resolve => setTimeout(resolve, ms));
 
-onMounted(() => { // rozdanie kart
-  for (let i = 0; i < 4; i++) {
-    for (let j = 0; j < 6; j++) {
-      let rand = Math.floor(Math.random() * cardsDeck.length)
-      if (cardsDeck[rand]) decks[i]?.value.push(cardsDeck[rand])
-      cardsDeck.splice(rand, 1);
-    }
-    decks[i]!.value = sortDeck(decks[i]?.value!)
-  }
-  for (let j = 0; j < playerDeck.value.length; j++) { // czy gracz posiada 9 kier
-    if (playerDeck.value[j]?.name == 'NineOfHearts') return
-  }
-  startBotPlay();
+onMounted(() => {
+  dealTheCards();
 })
-const playCard = (playingCard: card, index: number) => { // rzucenie karty
-  let deckLength = mainDeck.value.length;
-  if (mainDeck.value[0]?.value == -1) { // poczatek gry
-    if (playingCard.name == 'NineOfHearts') {
-      mainDeck.value[0] = playingCard
-      playerDeck.value.splice(index, 1);
-      startBotPlay();
-    } else {
-      startBotPlay();
+const playCard = (playingCard: card, index: number): void => { // playing card by player
+  console.log(canPlay.value)
+  if (canPlay.value) {
+    let deckLength = mainDeck.value.length;
+    if (mainDeck.value[0]?.value == undefined) { // game start
+      if (playingCard.name == 'NineOfHearts') {
+        mainDeck.value[0] = playingCard
+        playerDeck.value.splice(index, 1);
+        startcardPlay();
+      } else {
+        startcardPlay();
+      }
     }
-  }
-  else { // normalny rzut
-    if (playingCard.value >= mainDeck.value[deckLength - 1]!.value) {
-      mainDeck.value.push(playingCard)
-      playerDeck.value.splice(index, 1);
-      startBotPlay();
+    else { // normal play
+      if (playingCard.value >= mainDeck.value[deckLength - 1]!.value) {
+        if (fourCards(playerDeck.value, playingCard.value) == 4) {
+          let deckLength = playerDeck.value.length, saveIndex = 0;
+          for (let i = 0; i < deckLength; i++) {
+            if (playerDeck.value[i]?.value == playingCard.value) {
+              mainDeck.value.push(playerDeck.value[i]!)
+              saveIndex = i;
+            }
+          }
+          playerDeck.value.splice(saveIndex - 3, 4);
+          startcardPlay();
+        }
+        else {
+          mainDeck.value.push(playingCard)
+          playerDeck.value.splice(index, 1);
+          startcardPlay();
+        }
+      }
     }
   }
 }
-const sortDeck = (deck: card[]) => { // bubble sort talii
+const sortDeck = (deck: card[]): card[] => { // bubble sort deck
   for (let i = 0; i < deck.length - 1; i++) {
     for (let j = 0; j < (deck.length - i - 1); j++) {
       if (deck[j]!.value <= deck[j + 1]!.value) {
@@ -62,20 +69,26 @@ const sortDeck = (deck: card[]) => { // bubble sort talii
   }
   return deck;
 }
-async function startBotPlay() { // kolej botow
-  for (let i = 1; i < 4; i++) {
-    if (decks[i]?.value.length! > 0) {
-      await wait(1000);
-      const result = botPlay(decks[i]?.value!);
-      if (result) decks[i]!.value = result;
+async function startcardPlay() { // bots turn
+  canPlay.value = false;
+  if (playerDeck.value.length > 0) {
+    for (let i = 1; i < 4; i++) {
+      if (decks.value[i]?.value.length! > 0) {
+        await wait(1000);
+        const result = cardPlay(decks.value[i]?.value!);
+        if (result) decks.value[i]!.value = result;
+      }
+    }
+    if (playerDeck.value.length == 0) {
+      return;
     }
   }
-  if(playerDeck.value.length == 0) startBotPlay();
+  canPlay.value = true;
 }
-const botPlay = (deck: card[]) => { // zagranie bota
+const cardPlay = (deck: card[]): card[] => { // playing card by bot
   let deckLength = mainDeck.value.length;
   for (let i = deck.length - 1; i >= 0; i--) {
-    if (mainDeck.value[0]?.value == -1) { // poczatek gry
+    if (mainDeck.value[0]?.value == undefined) { // game start
       for (let j = 0; j < deck.length; j++) {
         if (deck[j]?.name == 'NineOfHearts') {
           mainDeck.value[0] = deck[j]!
@@ -85,45 +98,98 @@ const botPlay = (deck: card[]) => { // zagranie bota
       }
       return deck;
     }
-    else if (deck[i]?.value! >= mainDeck.value[deckLength - 1]?.value!) { // normalna gra
-      mainDeck.value.push(deck[i]!);
-      deck.splice(i, 1);
-      deck = sortDeck(deck);
-      return deck;
+    else if (deck[i]?.value! >= mainDeck.value[deckLength - 1]?.value!) { // normal game
+      if (fourCards(deck, deck[i]?.value!) == 4) {
+        let deckLength = deck.length, saveIndex = 0;
+        for (let i = 0; i < deckLength; i++) {
+          if (deck[i]?.value == deck[i]?.value!) {
+            mainDeck.value.push(deck[i]!)
+            saveIndex = i;
+          }
+        }
+        deck.splice(saveIndex - 3, 4);
+        return deck;
+      }
+      else {
+        mainDeck.value.push(deck[i]!);
+        deck.splice(i, 1);
+        deck = sortDeck(deck);
+        return deck;
+      }
+
     }
   }
-  return take3cards(deck, false) // jak nie moze zagrac
+  return take3cards(deck, false) // when he cant play
 }
-const take3cards = (deck: card[], playerPlay: boolean) => { // wziecie 3 kart z talii
+const take3cards = (deck: card[], playerPlay: boolean): card[] => { // take 3 cards from deck
   let deckLength = mainDeck.value.length;
   for (let i = deckLength - 1; i > deckLength - 4; i--) {
-    if (mainDeck.value[i]?.name == 'NineOfHearts') return
+    if (mainDeck.value[i]?.name == 'NineOfHearts') {
+      if (playerPlay == true) startcardPlay();
+      return sortDeck(deck);
+    }
     deck.push(mainDeck.value[i]!);
     mainDeck.value.splice(i, 1);
   }
-  deck = sortDeck(deck);
-  if (playerPlay == true) startBotPlay();
-  return deck;
+  if (playerPlay == true) startcardPlay();
+  return sortDeck(deck);
+}
+const fourCards = (deck: card[], value: number): number => {
+  let result = 0;
+  for (let i = 0; i < deck.length; i++) {
+    if (deck[i]?.value == value) result++;
+  }
+  return result;
+}
+const dealTheCards = (): void => { // dealing cards
+  for (let i = 0; i < 4; i++) {
+    for (let j = 0; j < 6; j++) {
+      console.log(cardsDeck.value.length, "dlugosc")
+      let rand = Math.floor(Math.random() * cardsDeck.value.length)
+      if (cardsDeck.value[rand]) decks.value[i]?.value.push(cardsDeck.value[rand])
+      cardsDeck.value.splice(rand, 1);
+    }
+    decks.value[i]!.value = sortDeck(decks.value[i]?.value!)
+  }
+  console.log(playerDeck.value, decks.value[0]?.value)
+  for (let j = 0; j < playerDeck.value.length; j++) { // whether the player has 9 hearts
+    if (playerDeck.value[j]?.name == 'NineOfHearts') return;
+  }
+  startcardPlay();
+}
+const restartGame = (par: boolean) => {
+  if (par) {
+    cardsDeck.value = [...cardsDeckJSON];
+    playerDeck.value = [];
+    bot1Deck.value = [];
+    bot2Deck.value = [];
+    bot3Deck.value = [];
+    mainDeck.value = [];
+    decks.value = [playerDeck, bot1Deck, bot2Deck, bot3Deck];
+    dealTheCards();
+  }
 }
 </script>
 
 <template>
   <div id="board">
     <div id="first" class="cards horizontal">
-      <CardComp v-for="card in bot1Deck" :card="card.name" :isPlayer="false" />
-    </div>
-    <div class="cards vertical">
       <CardComp v-for="card in bot2Deck" :card="card.name" :isPlayer="false" />
     </div>
+    <div class="cards vertical">
+      <CardComp v-for="card in bot1Deck" :card="card.name" :isPlayer="false" />
+    </div>
     <div class="cards mainDeck">
-      <img :src="`http://localhost:5173/src/assets/Cards/${c.name}.png`" v-for="c in mainDeck.slice(-3)"></img>
+      <img :src="`http://localhost:5173/src/assets/Cards/${c.name}.png`" v-for="c in mainDeck.slice(-3)"
+        v-if="playerDeck.length > 0"></img>
+      <AlertComp @restart="restartGame" v-else />
     </div>
     <div class="cards vertical">
       <CardComp v-for="card in bot3Deck" :card="card.name" :isPlayer="false" />
     </div>
     <div id="first" class="cards horizontal">
       <CardComp v-for="(card, i) in playerDeck" :card="card.name" :isPlayer="true" @click="playCard(card, i)" />
-      <button @click="take3cards(playerDeck, true)">Take 3 cards</button>
+      <button @click="take3cards(playerDeck, true)" v-if="canPlay">Take 3 cards</button>
     </div>
   </div>
 
