@@ -180,8 +180,9 @@ const restartGame = (par: boolean) => {
       <CardComp v-for="card in bot1Deck" :card="card.name" :isPlayer="false" />
     </div>
     <div class="cards mainDeck">
-      <img :src="`http://localhost:5173/src/assets/Cards/${c.name}.png`" v-for="c in mainDeck.slice(-3)"
+      <img :src="`http://localhost:5173/src/assets/Cards/${c.name}.png`" v-for="c in mainDeck"
         v-if="playerDeck.length > 0"></img>
+        <!-- mainDeck.slice(-3) -->
       <AlertComp @restart="restartGame" v-else />
     </div>
     <div class="cards vertical">
