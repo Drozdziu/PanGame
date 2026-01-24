@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted } from 'vue';
+import { computed} from 'vue';
 const props = defineProps(['card', 'isPlayer'])
 const cardType = computed(() => {
   if(props.isPlayer){

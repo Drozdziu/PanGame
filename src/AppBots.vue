@@ -23,7 +23,6 @@ onMounted(() => {
   dealTheCards();
 })
 const playCard = (playingCard: card, index: number): void => { // playing card by player
-  console.log(canPlay.value)
   if (canPlay.value) {
     let deckLength = mainDeck.value.length;
     if (mainDeck.value[0]?.value == undefined) { // game start
@@ -37,7 +36,7 @@ const playCard = (playingCard: card, index: number): void => { // playing card b
     }
     else { // normal play
       if (playingCard.value >= mainDeck.value[deckLength - 1]!.value) {
-        if (fourCards(playerDeck.value, playingCard.value) == 4) {
+        if (fourCards(playerDeck.value, playingCard.value) == 4 && confirm("Would you like to play 4 cards at once?")) {
           let deckLength = playerDeck.value.length, saveIndex = 0;
           for (let i = 0; i < deckLength; i++) {
             if (playerDeck.value[i]?.value == playingCard.value) {
@@ -144,14 +143,12 @@ const fourCards = (deck: card[], value: number): number => {
 const dealTheCards = (): void => { // dealing cards
   for (let i = 0; i < 4; i++) {
     for (let j = 0; j < 6; j++) {
-      console.log(cardsDeck.value.length, "dlugosc")
       let rand = Math.floor(Math.random() * cardsDeck.value.length)
       if (cardsDeck.value[rand]) decks.value[i]?.value.push(cardsDeck.value[rand])
       cardsDeck.value.splice(rand, 1);
     }
     decks.value[i]!.value = sortDeck(decks.value[i]?.value!)
   }
-  console.log(playerDeck.value, decks.value[0]?.value)
   for (let j = 0; j < playerDeck.value.length; j++) { // whether the player has 9 hearts
     if (playerDeck.value[j]?.name == 'NineOfHearts') return;
   }
@@ -169,6 +166,9 @@ const restartGame = (par: boolean) => {
     dealTheCards();
   }
 }
+function getCardUrl(name : string) {
+  return new URL(`./assets/Cards/${name}.png`, import.meta.url).href
+}
 </script>
 
 <template>
@@ -180,9 +180,7 @@ const restartGame = (par: boolean) => {
       <CardComp v-for="card in bot1Deck" :card="card.name" :isPlayer="false" />
     </div>
     <div class="cards mainDeck">
-      <img :src="`http://localhost:5173/src/assets/Cards/${c.name}.png`" v-for="c in mainDeck"
-        v-if="playerDeck.length > 0"></img>
-        <!-- mainDeck.slice(-3) -->
+      <img v-for="c in mainDeck.slice(-3)" v-if="playerDeck.length > 0" :src="getCardUrl(c.name)"/>
       <AlertComp @restart="restartGame" v-else />
     </div>
     <div class="cards vertical">
