@@ -100,11 +100,11 @@ const cardPlay = (deck: card[]): card[] => { // playing card by bot
     else if (deck[i]?.value! >= mainDeck.value[deckLength - 1]?.value!) { // normal game
       if (fourCards(deck, deck[i]?.value!) == 4) {
         let deckLength = deck.length, saveIndex = 0;
-        for (let i = 0; i < deckLength; i++) {
-          if (deck[i]?.value == deck[i]?.value!) {
+        for (let i = deckLength - 4; i < deckLength; i++) {
+          // if (deck[i]?.value == deck[i]?.value) {
             mainDeck.value.push(deck[i]!)
             saveIndex = i;
-          }
+          // }
         }
         deck.splice(saveIndex - 3, 4);
         return deck;

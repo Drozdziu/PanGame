@@ -8,15 +8,16 @@ const emit = defineEmits(['leave']);
 
 const peer = ref(null);
 const conn = ref(null);
-const peerID = ref(null)
+const connsArr = ref([]);
+const peerID = ref(null);
 const remoteId = ref(null);
 const playersConns = ref([]);
 const siteIsShown = props.siteIsShown
 
 const playerDeck = ref([]);
 const enemyDeck = ref([]);
-// const enemyDeck2 = ref([]);
-// const enemyDeck3 = ref([]);
+const enemyDeck2 = ref([]);
+const enemyDeck3 = ref([]);
 const mainDeck = ref([]);
 const cardsDeck = ref([...cardsDeckJSON]);
 const decks = ref([playerDeck, enemyDeck]);
@@ -230,6 +231,21 @@ const restartGame = (par) => { // restarting game
   }
 }
 function getCardUrl(name) { return new URL(`./assets/Cards/${name}.png`, import.meta.url).href}
+
+// const connections = {};
+
+// peer.on("connection", conn => {
+//   connections[conn.peer] = conn;
+
+//   conn.on("data", data => {
+//     console.log("od", conn.peer, data);
+//   });
+// });
+// function broadcast(msg) {
+//   Object.values(connections).forEach(c => c.send(msg));
+// }
+
+
 </script>
 
 <template>
@@ -244,10 +260,16 @@ function getCardUrl(name) { return new URL(`./assets/Cards/${name}.png`, import.
     <div id="first" class="cards horizontal">
       <img :src="getCardUrl('koszulka')" v-for="(card, i) in enemyDeck"></img>
     </div>
+    <!-- <div class="cards vertical">
+      <img :src="getCardUrl('koszulka')" v-for="(card, i) in enemyDeck1"></img>
+    </div> -->
     <div class="cards mainDeck">
       <img v-for="c in mainDeck.slice(-3)" v-if="playerDeck.length > 0" :src="getCardUrl(c.name)"/>
       <AlertComp @restart="restartGame" v-else /></img>
     </div>
+    <!-- <div class="cards vertical">
+      <img :src="getCardUrl('koszulka')" v-for="(card, i) in enemyDeck3"></img>
+    </div> -->
     <div id="first" class="cards horizontal">
       <img :src="getCardUrl(card.name)" v-for="(card, i) in playerDeck"
         class="playerCards" @click="playCard(card, i)"></img>
@@ -260,8 +282,8 @@ function getCardUrl(name) { return new URL(`./assets/Cards/${name}.png`, import.
 <style scoped>
 #board {
   display: grid;
-  /* grid-template-columns: repeat(3, 1fr); */
-  /* grid-template-rows: repeat(3, 1fr); */
+  /* grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr); */
   grid-template-columns: repeat(1, 1fr);
   gap: 50px;
   min-height: 70vh;
